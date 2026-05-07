@@ -10,16 +10,16 @@ A Pi package extension that adds runtime support for optional skill frontmatter 
 
 ## Install
 
-From a local checkout:
+Install from npm:
 
 ```bash
-pi install /path/to/pi-skill-model-effort
+pi install npm:pi-skill-model-effort
 ```
 
-For one-off testing:
+For one-off testing from npm:
 
 ```bash
-pi -e /path/to/pi-skill-model-effort
+pi -e npm:pi-skill-model-effort
 ```
 
 ## Skill frontmatter
