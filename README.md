@@ -47,8 +47,8 @@ Supported thinking values: `off`, `minimal`, `low`, `medium`, `high`, `xhigh`.
 ## Behavior
 
 - The model and thinking overrides are temporary and restored at the end of the user prompt/agent run.
-- Explicit `/skill:name` invocations are applied before the first model call for that prompt.
-- Automatically selected skills are applied after Pi reads that skill's `SKILL.md`, so the next LLM turn in the same agent run uses the override.
+- Explicit `/skill:name` invocations are applied as soon as Pi receives the raw slash command, before the first model call for that prompt.
+- Automatically selected skills are applied after Pi reads that skill's `SKILL.md`, so the next LLM turn in the same agent run uses the override. The initial model turn that decides to load the skill still uses the current session model/thinking.
 - Model references may be `provider/model-id` or an unqualified model id/name if it uniquely matches one configured model.
 
 ## Package structure

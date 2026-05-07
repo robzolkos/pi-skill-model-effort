@@ -1,6 +1,6 @@
 {
   "name": "pi-skill-model-effort",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pi extension that honors model, effort, and thinking frontmatter on skills.",
   "type": "module",
   "keywords": [

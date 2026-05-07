@@ -5,6 +5,8 @@ import { isAbsolute, normalize, resolve } from "node:path";
 
 type ThinkingLevel = "off" | "minimal" | "low" | "medium" | "high" | "xhigh";
 
+type RuntimeSkill = Pick<Skill, "name" | "filePath">;
+
 type RuntimeMeta = {
   model?: string;
   thinking?: ThinkingLevel;
@@ -30,7 +32,33 @@ function canonicalPath(path: string, cwd: string): string {
   }
 }
 
-function readSkillRuntimeMeta(skill: Skill): RuntimeMeta {
+function xmlUnescape(value: string): string {
+  return value
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
+function skillsFromSystemPrompt(systemPrompt: string, cwd: string): RuntimeSkill[] {
+  const skills: RuntimeSkill[] = [];
+  const skillBlockPattern = /<skill>\s*([\s\S]*?)\s*<\/skill>/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = skillBlockPattern.exec(systemPrompt))) {
+    const block = match[1];
+    const name = block.match(/<name>([\s\S]*?)<\/name>/)?.[1]?.trim();
+    const location = block.match(/<location>([\s\S]*?)<\/location>/)?.[1]?.trim();
+    if (name && location) {
+      skills.push({ name: xmlUnescape(name), filePath: canonicalPath(xmlUnescape(location), cwd) });
+    }
+  }
+
+  return skills;
+}
+
+function readSkillRuntimeMeta(skill: RuntimeSkill): RuntimeMeta {
   const raw = readFileSync(skill.filePath, "utf8");
   const { frontmatter } = parseFrontmatter<Record<string, unknown>>(raw);
   const warnings: string[] = [];
@@ -83,18 +111,25 @@ function findModel(modelRef: string, ctx: ExtensionContext): ExtensionContext["m
 }
 
 export default function skillModelEffort(pi: ExtensionAPI) {
-  let skillsByName = new Map<string, Skill>();
-  let skillsByPath = new Map<string, Skill>();
+  let skillsByName = new Map<string, RuntimeSkill>();
+  let skillsByPath = new Map<string, RuntimeSkill>();
   let restoreState: RestoreState | undefined;
 
-  function refreshSkillMaps(skills: Skill[] | undefined, cwd: string) {
+  function refreshSkillMaps(skills: RuntimeSkill[] | undefined, cwd: string) {
     skillsByName = new Map();
     skillsByPath = new Map();
 
     for (const skill of skills ?? []) {
-      skillsByName.set(skill.name, skill);
-      skillsByPath.set(canonicalPath(skill.filePath, cwd), skill);
+      const filePath = canonicalPath(skill.filePath, cwd);
+      const runtimeSkill = { name: skill.name, filePath };
+      skillsByName.set(runtimeSkill.name, runtimeSkill);
+      skillsByPath.set(filePath, runtimeSkill);
     }
+  }
+
+  function ensureSkillMaps(ctx: ExtensionContext) {
+    if (skillsByName.size > 0) return;
+    refreshSkillMaps(skillsFromSystemPrompt(ctx.getSystemPrompt(), ctx.cwd), ctx.cwd);
   }
 
   function rememberCurrentRuntime(ctx: ExtensionContext) {
@@ -104,7 +139,7 @@ export default function skillModelEffort(pi: ExtensionAPI) {
     };
   }
 
-  async function applySkillRuntime(skill: Skill, ctx: ExtensionContext, source: "command" | "read") {
+  async function applySkillRuntime(skill: RuntimeSkill, ctx: ExtensionContext, source: "command" | "read") {
     const meta = readSkillRuntimeMeta(skill);
     if (!meta.model && !meta.thinking && meta.warnings.length === 0) return;
 
@@ -141,6 +176,17 @@ export default function skillModelEffort(pi: ExtensionAPI) {
       }
     }
   }
+
+  pi.on("input", async (event, ctx) => {
+    const explicitSkillMatch = event.text.match(/^\/skill:([^\s]+)/);
+    if (!explicitSkillMatch) return { action: "continue" as const };
+
+    ensureSkillMaps(ctx);
+    const skill = skillsByName.get(explicitSkillMatch[1]);
+    if (skill) await applySkillRuntime(skill, ctx, "command");
+
+    return { action: "continue" as const };
+  });
 
   pi.on("before_agent_start", async (event, ctx) => {
     refreshSkillMaps(event.systemPromptOptions.skills, ctx.cwd);
