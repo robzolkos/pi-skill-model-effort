@@ -1,0 +1,28 @@
+{
+  "name": "pi-skill-model-effort",
+  "version": "0.1.0",
+  "description": "Pi extension that honors model, effort, and thinking frontmatter on skills.",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "skills"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "echo 'nothing to build'"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/skill-model-effort.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "typescript": "^5.9.3"
+  }
+}
