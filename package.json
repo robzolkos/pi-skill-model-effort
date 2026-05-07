@@ -9,6 +9,20 @@
     "skills"
   ],
   "license": "MIT",
+  "author": "Rob Zolkos <rob@zolkos.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robzolkos/pi-skill-model-effort.git"
+  },
+  "homepage": "https://github.com/robzolkos/pi-skill-model-effort#readme",
+  "bugs": {
+    "url": "https://github.com/robzolkos/pi-skill-model-effort/issues"
+  },
+  "files": [
+    "extensions/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "check": "tsc --noEmit",
     "build": "echo 'nothing to build'"
