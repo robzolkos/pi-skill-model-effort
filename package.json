@@ -1,6 +1,6 @@
 {
   "name": "pi-skill-model-effort",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Pi extension that honors model, effort, and thinking frontmatter on skills.",
   "type": "module",
   "keywords": [
@@ -33,10 +33,10 @@
     ]
   },
   "peerDependencies": {
-    "@mariozechner/pi-coding-agent": "*"
+    "@earendil-works/pi-coding-agent": "*"
   },
   "devDependencies": {
-    "@mariozechner/pi-coding-agent": "*",
+    "@earendil-works/pi-coding-agent": "*",
     "typescript": "^5.9.3"
   }
 }
